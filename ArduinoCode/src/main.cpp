@@ -1,5 +1,6 @@
 #include <SPI.h>
 #include <WiFi.h>
+#include "esp_camera.h"
 
 char ssid[] = "XXXXX";
 char pass[] = "XXXXX";
@@ -13,6 +14,7 @@ float bytes2float(uchar* bytes);
 int bytes2int(uchar* bytes);
 bool read_bytes(char* buffer, int size);
 void printWifiStatus();
+void send_img();
 
 void setup() {
 	//Initialize serial and wait for port to open:
@@ -60,23 +62,25 @@ void loop() {
 		while (true);
 	}
 	
+	send_img();
+	
 	delete [] r;
 	delete [] angle;
 }
 
-float bytes2float(uchar* bytes){
+float bytes2float(uint8_t* bytes){
 	float res;
 	memcpy(&res, &bytes, sizeof(res));
 	return res;
 }
 
-int bytes2int(uchar* bytes){
+int bytes2int(uint8_t* bytes){
 	int res;
 	memcpy(&res, &bytes, sizeof(res));
 	return res;
 }
 
-bool read_bytes(char* buffer, int size){
+bool read_bytes(uint8_t* buffer, int size){
 	bool succ = true;
 	for (int i = 0; i < size; i++) {
 		while(!client.available()) {
@@ -105,4 +109,23 @@ void printWifiStatus() {
 	Serial.print("signal strength (RSSI):");
 	Serial.print(rssi);
 	Serial.println(" dBm");
+}
+
+void send_img() {
+	camera_fb_t* fb = esp_camera_fb_get();
+	if (!fb) {
+		Serial.println("Camera capture failed");
+		return;
+	}
+	
+	size_t jpg_buf_len = 0;	
+	uint8_t* jpg_buf = NULL;
+	bool jpeg_converted = frame2jpg(fb, 80, &jpg_buf, &jpg_buf_len);
+	if (!jpeg_converted) {
+		Serial.println("JPEG compression failed");
+	}
+	// Возвращаем буфер для переиспользования
+	esp_camera_fb_return(fb);
+	
+	client.write(jpg_buf, jpg_buf_len);
 }
