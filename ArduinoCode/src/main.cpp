@@ -2,11 +2,11 @@
 #include <WiFi.h>
 #include "esp_camera.h"
 
-char ssid[] = "XXXXX";
-char pass[] = "XXXXX";
+char ssid[] = "SAGEMCOM_9CB8";
+char pass[] = "XNVB6KEC";
 
 int status = WL_IDLE_STATUS;
-char server[] = "ipinfo.io";
+char server[] = "127.0.0.1";
 
 WiFiClient client;
 
@@ -47,8 +47,8 @@ void setup() {
 void loop() {
 	// if there are incoming bytes available
 	// from the server, read them and print 
-	char* r     = new char[4],
-		  angle = new char[4];
+	char* r_bytes     = new char[4],
+		  angle_bytes = new char[4];
 	bool read_succ = true;
 	read_succ |= read_bytes(r, 4);
 	read_succ |= read_bytes(angle, 4);
@@ -62,10 +62,19 @@ void loop() {
 		while (true);
 	}
 	
+	float r = bytes2float(r_bytes);
+	int angle = bytes2int(angle_bytes);
+	
+	Serial.print("r: ");
+	Serial.print(r);
+	Serial.print(", angle: ")
+	Serial.println(angle);
+	
 	send_img();
 	
-	delete [] r;
-	delete [] angle;
+	delete [] r_bytes;
+	delete [] angle_bytes;
+	Serial.println("");
 }
 
 float bytes2float(uint8_t* bytes){
