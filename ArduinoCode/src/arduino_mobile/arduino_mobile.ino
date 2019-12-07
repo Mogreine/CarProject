@@ -39,9 +39,9 @@ void setup() {
   if (client.connect(server, port)) {
     Serial.println("connected to server");
     // Make a HTTP request:
-    client.println("GET /ip HTTP/1.1");
-    client.println("Host: ipinfo.io");
-    client.println("Connection: close");
+    client.println("Darova");
+    char* darova = "Darova 2.0";
+    client.write(darova, 10);
     client.println();
   }
   else {
@@ -49,7 +49,7 @@ void setup() {
     while(1);
   }
   Serial.println("Waiting 3 sec");
-  delay(2000);
+  delay(3000);
 }
 
 void loop() {
@@ -60,8 +60,8 @@ void loop() {
   uint8_t* angle_bytes = new uint8_t[4];
   
   bool read_succ = true;
-  read_succ |= read_bytes(r_bytes, 100);
-  read_succ |= read_bytes(angle_bytes, 100);
+  read_succ |= read_bytes(r_bytes, 4);
+  read_succ |= read_bytes(angle_bytes, 4);
 
   for(int i = 0; i < 4; i++) {
     Serial.print(r_bytes[i]);
@@ -116,13 +116,13 @@ int bytes2int(uint8_t* bytes) {
 bool read_bytes(uint8_t* buffer, int size){
   bool succ = true;
  for (int i = 0; i < size; i++) {
-//    while(!client.available()) {
-//      if (!client.connected()) {
-//        return false;
-//      }
-//      Serial.println("Waiting for a byte");
-//      delay(100);
-//    }
+    while(!client.available()) {
+      if (!client.connected()) {
+        return false;
+      }
+      Serial.println("Waiting for a byte");
+      delay(100);
+    }
     
     buffer[i] = client.read();
   }
