@@ -17,8 +17,8 @@ void setup() {
   Serial.begin(9600);
   motorR.setMode(FORWARD);
   motorL.setMode(FORWARD);
-  motorR.setSpeed(170);
-  motorL.setSpeed(170);
+  motorR.setSpeed(200);
+  motorL.setSpeed(200);
 }
 
 void loop() {
