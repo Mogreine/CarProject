@@ -8,7 +8,7 @@
 
 #include "GyverMotorESP.h"
 GMotor motorL(IN1, IN2, 1);
-GMotor motorR(IN3, IN4, 2);
+GMotor motorR(IN4, IN3, 2);
 
 int dir = 0;
 
