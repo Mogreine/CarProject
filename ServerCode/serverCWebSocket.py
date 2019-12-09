@@ -14,7 +14,7 @@ print(ba2," ",len(ba2))
 
 
 async def echo(websocket, path):
-    print("Start")
+    print("START")
     async for message in websocket:
         print(message)
         await websocket.send(ba)

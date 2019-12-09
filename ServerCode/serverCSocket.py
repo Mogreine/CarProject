@@ -23,12 +23,10 @@ while True:
     print('connected:', addr)
     while True:
         data = client.recv(2048).decode()
-
-
         if not data:
            break
         print(data)
-        client.send("hello".encode())
+        client.send(ba)
     client.close()
     print("CLOSE")
 

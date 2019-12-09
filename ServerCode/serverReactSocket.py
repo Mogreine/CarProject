@@ -3,7 +3,7 @@ import numpy as np
 import cv2
 
 sock = socket.socket()
-sock.bind(('', 9090))
+sock.bind(('', 9092))
 sock.listen(1)
 print('Server started')
 print(sock)
