@@ -1,105 +1,34 @@
 #include <WiFi.h>
 #include "esp_camera.h"
 
+#define IN1 4
+#define IN2 2         // IN2 обязательно должен быть ШИМ пином!!!
+#define IN3 14
+#define IN4 15        // IN4 обязательно должен быть ШИМ пином!!!
+
+void init_motor(uint8_t pin1, uint8_t pin2, uint8_t channel1, uint8_t channel2) {
+  ledcSetup(channel1, 50000, 8);
+  ledcAttachPin(pin1, channel1);
+  
+  ledcSetup(channel2, 50000, 8);
+  ledcAttachPin(pin2, channel2);
+}
+
+void setSpeed(uint8_t channel1, uint8_t channel2, int duty) {
+  ledcWrite(channel1, duty);
+  ledcWrite(channel2, 0);
+}
+
 void uint2bytes(size_t num, uint8_t* buf);
 
 const char* ssid     = "SAGEMCOM_9CB8";
 const char* password = "XNVB6KEC";
 
-#define CAM_PIN_PWDN    32 //power down is not used
-#define CAM_PIN_RESET   -1 //software reset will be performed
-#define CAM_PIN_XCLK    0
-#define CAM_PIN_SIOD    26
-#define CAM_PIN_SIOC    27
-
-#define CAM_PIN_D7      35
-#define CAM_PIN_D6      34
-#define CAM_PIN_D5      39
-#define CAM_PIN_D4      36
-#define CAM_PIN_D3      21
-#define CAM_PIN_D2      19
-#define CAM_PIN_D1      18
-#define CAM_PIN_D0       5
-#define CAM_PIN_VSYNC   25
-#define CAM_PIN_HREF    23
-#define CAM_PIN_PCLK    22
-
-static camera_config_t camera_config = {
-    .pin_pwdn  = CAM_PIN_PWDN,
-    .pin_reset = CAM_PIN_RESET,
-    .pin_xclk = CAM_PIN_XCLK,
-    .pin_sscb_sda = CAM_PIN_SIOD,
-    .pin_sscb_scl = CAM_PIN_SIOC,
-
-    .pin_d7 = CAM_PIN_D7,
-    .pin_d6 = CAM_PIN_D6,
-    .pin_d5 = CAM_PIN_D5,
-    .pin_d4 = CAM_PIN_D4,
-    .pin_d3 = CAM_PIN_D3,
-    .pin_d2 = CAM_PIN_D2,
-    .pin_d1 = CAM_PIN_D1,
-    .pin_d0 = CAM_PIN_D0,
-    .pin_vsync = CAM_PIN_VSYNC,
-    .pin_href = CAM_PIN_HREF,
-    .pin_pclk = CAM_PIN_PCLK,
-
-    //XCLK 20MHz or 10MHz for OV2640 double FPS (Experimental)
-    .xclk_freq_hz = 20000000,
-    .ledc_timer = LEDC_TIMER_0,
-    .ledc_channel = LEDC_CHANNEL_0,
-
-    .pixel_format = PIXFORMAT_JPEG,//YUV422,GRAYSCALE,RGB565,JPEG
-    .frame_size = FRAMESIZE_QQVGA,//QQVGA-QXGA Do not use sizes above QVGA when not JPEG
-
-    .jpeg_quality = 13, //0-63 lower number means higher quality
-    .fb_count = 1 //if more than one, i2s runs in continuous mode. Use only with JPEG
-};
-
-esp_err_t camera_init(){
-    //power up the camera if PWDN pin is defined
-    if(CAM_PIN_PWDN != -1){
-        pinMode(CAM_PIN_PWDN, OUTPUT);
-        digitalWrite(CAM_PIN_PWDN, LOW);
-    }
-
-    //initialize the camera
-    esp_err_t err = esp_camera_init(&camera_config);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Camera Init Failed");
-        return err;
-    }
-
-    return ESP_OK;
-}
-
-esp_err_t camera_capture_send(WiFiClient* client) {
-    //acquire a frame
-    camera_fb_t * fb = esp_camera_fb_get();
-    if (!fb) {
-        ESP_LOGE(TAG, "Camera Capture Failed");
-        return ESP_FAIL;
-    }
-//    if (!frame2jpg(fb, 10, buf, len)){
-//      Serial.println("Convertation failed");
-//    }
-    
-    uint8_t* img_len_bytes = new uint8_t[4];
-    uint2bytes(fb->len, img_len_bytes);
-    client->write(img_len_bytes, 4);
-    client->write(fb->buf, fb->len);
-    Serial.println(fb->len);
-      
-    //return the frame buffer back to the driver for reuse
-    esp_camera_fb_return(fb);
-    return ESP_OK;
-}
-
-WiFiServer server(980);
+WiFiServer server(9081);
 
 void setup()
 {
     Serial.begin(115200);
-    pinMode(5, OUTPUT);      // set the LED pin mode
 
     delay(10);
 
@@ -121,8 +50,12 @@ void setup()
     Serial.println("WiFi connected.");
     Serial.println("IP address: ");
     Serial.println(WiFi.localIP());
+    init_motor(IN1, IN2, 2, 3);
+    init_motor(IN4, IN3, 4, 5);
 
-    camera_init();    
+    setSpeed(2, 3, 255);
+    setSpeed(4, 5, 255);
+
     server.begin();
 }
 
@@ -135,29 +68,43 @@ void loop(){
     Serial.println("New Client.");           // print a message out the serial port
     String currentLine = "";                // make a String to hold incoming data from the client
     while (client.connected()) {
-//      uint8_t* input = new uint8_t[4];
-//      int read_symbols = 0;
-//      while(read_symbols < 4) {
-//        if (client.available()) {             // if there's bytes to read from the client,
-//          char c = client.read();             // read a byte, then
-//          // Serial.write(c);                    // print it out the serial monitor
-//          input[read_symbols] = c;
-//          read_symbols++;
-//        }  
-//      }
-//      float num = bytes2float(input);
-//      char num_str[20];
-//      sprintf(num_str, "%.4f", num); 
-//      Serial.println(num_str);
+      uint8_t* input = new uint8_t[4];
+      uint8_t* input2 = new uint8_t[4];
+      int read_symbols = 0;
+      while(read_symbols < 4) {
+        if (client.available()) {             // if there's bytes to read from the client,
+          char c = client.read();             // read a byte, then
+          // Serial.write(c);                    // print it out the serial monitor
+          input[read_symbols] = c;
+          read_symbols++;
+        }  
+      }
+      read_symbols = 0;
+      while(read_symbols < 4) {
+        if (client.available()) {             // if there's bytes to read from the client,
+          char c = client.read();             // read a byte, then
+          // Serial.write(c);                    // print it out the serial monitor
+          input2[read_symbols] = c;
+          read_symbols++;
+        }  
+      }
+      float num1 = bytes2float(input);
+      float num2 = bytes2float(input2);
+      char num_str1[20];
+      char num_str2[20];
+      sprintf(num_str1, "%.4f", num1);
+      sprintf(num_str2, "%.4f", num2); 
+      Serial.println(num_str1);
+      Serial.println(num_str2);
+      
+      
+      setSpeed(2, 3, int(num1));
+      setSpeed(4, 5, int(num2));
       
 //      char* msg = "Got ur message";
 //      int msg_len = strlen(msg);
 //      client.write(msg, msg_len);
-//      delete[] input;
-
-      if (camera_capture_send(&client) != ESP_OK) {
-        Serial.println("Capture failed.");
-      }
+      delete[] input;
     }
     // close the connection:
     client.stop();
