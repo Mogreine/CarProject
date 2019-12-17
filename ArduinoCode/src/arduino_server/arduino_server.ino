@@ -1,3 +1,4 @@
+#define _USE_MATH_DEFINES
 #include <WiFi.h>
 #include "esp_camera.h"
 #include <cmath>
@@ -7,39 +8,6 @@
 #define IN3 14
 #define IN4 15        // IN4 обязательно должен быть ШИМ пином!!!
 
-const double pi = 3.141;
-
-struct CarSpeed {
-  int left = 255;
-  int right = 255;
-  bool direction = 0;
-  
-//  CarSpeed(int _left, int _right, bool _direction) {
-//    left = _left;
-//    right = _right;
-//    direction = _direction;
-//  }
-} CarSpeed;
-
-void init_motor(uint8_t pin1, uint8_t pin2, uint8_t channel1, uint8_t channel2) {
-  ledcSetup(channel1, 50000, 8);
-  ledcAttachPin(pin1, channel1);
-  
-  ledcSetup(channel2, 50000, 8);
-  ledcAttachPin(pin2, channel2);
-}
-
-void setSpeed(uint8_t channel1, uint8_t channel2, int wheel) {
-  if (CarSpeed.direction == 1) {
-    ledcWrite(channel1, wheel == 0 ? CarSpeed.left : CarSpeed.right);
-    ledcWrite(channel2, 0);
-  } 
-  else {
-    ledcWrite(channel1, 0);
-    ledcWrite(channel2, wheel == 0 ? CarSpeed.left : CarSpeed.right);
-  }
-}
-
 void uint2bytes(size_t num, uint8_t* buf);
 
 const char* ssid     = "SAGEMCOM_9CB8";
@@ -47,34 +15,102 @@ const char* password = "XNVB6KEC";
 
 WiFiServer server(9081);
 
-void CalcSpeed(float r, float angle) {
-  if (r == 0) {
-    CarSpeed.direction = 0;
-    CarSpeed.left = 170;
-    CarSpeed.right = 170;
-    return;
+class Car {
+private:
+  int left_forward_pin;
+  int left_backward_pin;
+  int right_forward_pin;
+  int right_backward_pin;
+
+  int left_forward_channel;
+  int left_backward_channel;
+  int right_forward_channel;
+  int right_backward_channel;
+
+  void set_ledc(int channel_init, int resolution = 8, int freq = 100) {
+    // setting up left motor
+    ledcSetup(channel_init, freq, resolution);
+    ledcAttachPin(left_forward_pin, channel_init);
+    left_forward_channel = channel_init;
+    channel_init++;
+
+    ledcSetup(channel_init, freq, resolution);
+    ledcAttachPin(left_backward_pin, channel_init);
+    left_backward_channel = channel_init;
+    channel_init++;
+
+    // setting up right motor
+    ledcSetup(channel_init, freq, resolution);
+    ledcAttachPin(right_forward_pin, channel_init);
+    right_forward_channel = channel_init;
+    channel_init++;
+
+    ledcSetup(channel_init, freq, resolution);
+    ledcAttachPin(right_backward_pin, channel_init);
+    right_backward_channel = channel_init;
   }
-  int curr_speed = 170 + 85 * r;
-  // Going backwards
-  if (angle > pi) {
-    CarSpeed.direction = 0;
-    angle -= pi;
+
+  void set_left_speed(int speed) {
+    ledcWrite(left_forward_channel, backwards == 0 ? speed : 0);
+    ledcWrite(left_backward_channel, backwards == 1 ? speed : 0);
+    left_speed = speed;
   }
-  else {
-    CarSpeed.direction = 1;
+
+  void set_right_speed(int speed) {
+    ledcWrite(right_forward_channel, backwards == 0 ? speed : 0);
+    ledcWrite(right_backward_channel, backwards == 1 ? speed : 0);
+    right_speed = speed;
   }
-  if (angle < pi / 2) {
-    CarSpeed.left = 255;
-    CarSpeed.right = 170 + 85 * cos(angle);
+public:
+  int left_speed;
+  int right_speed;
+  bool backwards;
+
+  Car(int _left_forward_pin, int _left_backward_pin, int _right_forward_pin, int _right_backward_pin) {
+    left_forward_pin = _left_forward_pin;
+    left_backward_pin = _left_backward_pin;
+    right_forward_pin = _right_forward_pin;
+    right_backward_pin = _right_backward_pin;
+
+    set_ledc(2);
+    backwards = 0;
+    set_speed(220, 220, 0);
   }
-  else {
-    CarSpeed.left = 170 + 85 * sin(angle);
-    CarSpeed.right = 255;
+
+  void set_direction(bool back) {
+    backwards = back;
+    set_speed(left_speed, right_speed, back);
   }
-  char msg[20];
-  sprintf(msg, "%.4f %.4f", cos(angle), sin(angle));
-  Serial.println(msg);
-}
+
+  void set_speed(int left, int right, bool back) {
+    backwards = back;
+    set_left_speed(left);
+    set_right_speed(right);
+  }
+
+  void parse_polar_coords(double r, double angle) {
+    if (r < 1e-5) {
+      set_speed(0, 0, 0);
+      return;
+    }
+    int min_speed = 170,
+      max_diff = 85;
+    if (angle < M_PI_2) {
+      set_speed(min_speed + r * max_diff, min_speed + r * sin(angle) * max_diff, 0);
+    }
+    else if (angle < M_PI) {
+      set_speed(min_speed + r * sin(angle) * max_diff, min_speed + r * max_diff, 0);
+    }
+    else if (angle < 3 * M_PI / 2) {
+      set_speed(min_speed + r * abs(sin(angle)) * max_diff, min_speed + r * max_diff, 1);
+    }
+    else {
+      set_speed(min_speed + r * max_diff, min_speed + r * abs(sin(angle)) * max_diff, 1);
+    }
+  }
+};
+
+Car car(IN1, IN2, IN4, IN3);
 
 void setup()
 {
@@ -100,12 +136,7 @@ void setup()
     Serial.println("WiFi connected.");
     Serial.println("IP address: ");
     Serial.println(WiFi.localIP());
-    init_motor(IN1, IN2, 2, 3);
-    init_motor(IN4, IN3, 4, 5);
-
-    setSpeed(2, 3, 0);
-    setSpeed(4, 5, 1);
-
+    
     server.begin();
 }
 
@@ -138,33 +169,24 @@ void loop() {
           read_symbols++;
         }  
       }
-      float num1 = 0, num2 = 0;
       if (!client.connected()) {
-        num1 = 170;
-        num2 = 170;
         Serial.println("Client disconnected, speed set to minimum.");
+        car.parse_polar_coords(0, 0);
         delete[] input;
         break;
       }
-      num1 = bytes2float(input);
-      num2 = bytes2float(input2);
+      float r = bytes2float(input),
+            angle = bytes2float(input2);
       char num_str1[20];
-      char num_str2[20];
-      sprintf(num_str1, "%.4f %.4f", num1, num2);
-      // sprintf(num_str2, "%.4f", num2); 
+      sprintf(num_str1, "%.4f %.4f", r, angle); 
       Serial.println(num_str1);
-      // Serial.println(num_str2);
 
-      CalcSpeed(num1, num2);
-      char act_speed[20];
-      sprintf(act_speed, "%d %d", CarSpeed.left, CarSpeed.right);
-      Serial.println(act_speed);
-      setSpeed(2, 3, 0);
-      setSpeed(4, 5, 1);
+      car.parse_polar_coords(r, angle);
       
-//      char* msg = "Got ur message";
-//      int msg_len = strlen(msg);
-//      client.write(msg, msg_len);
+      char act_speed[20];
+      sprintf(act_speed, "%d %d", car.left_speed, car.right_speed);
+      Serial.println(act_speed);
+      
       delete[] input;
     }
     // close the connection:
