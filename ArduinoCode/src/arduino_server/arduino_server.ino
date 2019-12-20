@@ -27,7 +27,7 @@ private:
   int right_forward_channel;
   int right_backward_channel;
 
-  void set_ledc(int channel_init, int resolution = 8, int freq = 100) {
+  void set_ledc(int channel_init, int resolution = 8, int freq = 1000) {
     // setting up left motor
     ledcSetup(channel_init, freq, resolution);
     ledcAttachPin(left_forward_pin, channel_init);
@@ -89,12 +89,14 @@ public:
   }
 
   void parse_polar_coords(double r, double angle) {
+    r = min(1.0, r);
+    r = max(0.0, r);
     if (r < 1e-5) {
       set_speed(0, 0, 0);
       return;
     }
-    int min_speed = 170,
-      max_diff = 85;
+    int min_speed = 50,
+      max_diff = 205;
     if (angle < M_PI_2) {
       set_speed(min_speed + r * max_diff, min_speed + r * sin(angle) * max_diff, 0);
     }
