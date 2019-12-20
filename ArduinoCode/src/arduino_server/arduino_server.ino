@@ -96,7 +96,7 @@ public:
       return;
     }
     int min_speed = 50,
-      max_diff = 205;
+        max_diff = 205;
     if (angle < M_PI_2) {
       set_speed(min_speed + r * max_diff, min_speed + r * sin(angle) * max_diff, 0);
     }
@@ -108,6 +108,34 @@ public:
     }
     else {
       set_speed(min_speed + r * max_diff, min_speed + r * abs(sin(angle)) * max_diff, 1);
+    }
+  }
+
+  void parse_coords(double x, double y) {
+    // validation
+    x = min(1.0, x);
+    x = max(-1, x);
+    y = min(1.0, y);
+    y = max(-1, y);
+
+    double r = sqrt(x * x + y * y);
+    if (r < 1e-5) {
+      set_speed(0, 0, 0);
+      return;
+    }
+    int min_speed = 70,
+        max_diff = 160;
+    if (x > 0 && y > 0) {
+      set_speed(min_speed + r * max_diff, min_speed + r * y * max_diff, 0);
+    }
+    else if (x < 0 && y > 0) {
+      set_speed(min_speed + r * y * max_diff, min_speed + r * max_diff, 0);
+    }
+    else if (x < 0 && y < 0) {
+      set_speed(min_speed + r * (-y) * max_diff, min_speed + r * max_diff, 1);
+    }
+    else {
+      set_speed(min_speed + r * max_diff, min_speed + r * (-y) * max_diff, 1);
     }
   }
 };
