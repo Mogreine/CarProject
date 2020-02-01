@@ -10,8 +10,8 @@
 
 void uint2bytes(size_t num, uint8_t* buf);
 
-const char* ssid     = "SAGEMCOM_9CB8";
-const char* password = "XNVB6KEC";
+const char* ssid     = "ustu_open";
+const char* password = "";
 
 WiFiServer server(9081);
 
@@ -72,9 +72,9 @@ public:
     right_forward_pin = _right_forward_pin;
     right_backward_pin = _right_backward_pin;
 
-    set_ledc(2);
+    set_ledc(4);
     backwards = 0;
-    set_speed(220, 220, 0);
+    set_speed(0, 0, 0);
   }
 
   void set_direction(bool back) {
@@ -114,16 +114,16 @@ public:
   void parse_coords(double x, double y) {
     // validation
     x = min(1.0, x);
-    x = max(-1, x);
+    x = max(-1.0, x);
     y = min(1.0, y);
-    y = max(-1, y);
+    y = max(-1.0, y);
 
     double r = sqrt(x * x + y * y);
     if (r < 1e-5) {
       set_speed(0, 0, 0);
       return;
     }
-    int min_speed = 70,
+    int min_speed = 60,
         max_diff = 160;
     if (x > 0 && y > 0) {
       set_speed(min_speed + r * max_diff, min_speed + r * y * max_diff, 0);
@@ -140,7 +140,7 @@ public:
   }
 };
 
-Car car(IN1, IN2, IN4, IN3);
+Car car(IN4, IN3, IN1, IN2);
 
 void setup()
 {
@@ -211,7 +211,7 @@ void loop() {
       sprintf(num_str1, "%.4f %.4f", r, angle); 
       Serial.println(num_str1);
 
-      car.parse_polar_coords(r, angle);
+      car.parse_coords(r, angle);
       
       char act_speed[20];
       sprintf(act_speed, "%d %d", car.left_speed, car.right_speed);
