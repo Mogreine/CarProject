@@ -6,7 +6,7 @@ import detector
 import management
 
 window = Tk()
-window.title('Здарова, блет')
+window.title('Пишем историю')
 window.geometry('1080x720+300+100')
 window.configure(bg='Light Blue')
 
@@ -14,6 +14,8 @@ imageFrame = Frame(window, width=1000, height=500)
 #imageFrame.grid(row=0, column=0, padx=10, pady=10)
 
 name = StringVar()
+state = StringVar()
+state.set('Ответ убил')
 video_capture = cv2.VideoCapture(0)
 
 def show_frame():
@@ -34,16 +36,49 @@ def fill_listbox():
             known_persons_lbox.insert(END, i)
 
 def add_person_click():
-    frame = video_capture.read()[1]
-    frame = cv2.flip(frame, 1)
-    management.add_person(name.get(), frame)
-    known_persons_lbox.insert(END, name.get())
+    if name.get() != '':
+        frame = video_capture.read()[1]
+        frame = cv2.flip(frame, 1)
+        exist = management.add_person(name.get(), frame)
+        if exist == 0:
+            known_persons_lbox.insert(END, name.get())
+            state.set(f'Персона {name.get()} добавлена')
+        elif exist == 1:
+            state.set(f'Персона {name.get()} обновлена')
+        else:
+            state.set('Лицо не обнаружено')
+        name.set('')
+    else:
+        state.set('Введите имя персоны')
+
+def add_person_file_click():
+    from tkinter import filedialog
+    file_name = filedialog.askopenfilename(filetypes=[('PNG images', '.png'), ('JPEG images', '.jpg')])
+    if file_name != '':
+        if name.get() != '':
+            image = cv2.imread(file_name)
+            exist = management.add_person(name.get(), image)
+            if exist == 0:
+                known_persons_lbox.insert(END, name.get())
+                state.set(f'Персона {name.get()} добавлена')
+            elif exist == 1:
+                state.set(f'Персона {name.get()} обновлена')
+            else:
+                state.set('Лицо не обнаружено')
+            name.set('')
+        else:
+            state.set('Введите имя персоны')
 
 def delete_person_click():
-    index = known_persons_lbox.curselection()[0]
-    wanted = known_persons_lbox.get(index, index)[0]
-    management.delete_person(wanted)
-    known_persons_lbox.delete(index)
+    try:
+        index = known_persons_lbox.curselection()[0]
+    except IndexError:
+        state.set('Выберите удаляемую персону')
+    else:
+        wanted = known_persons_lbox.get(index, index)[0]
+        management.delete_person(wanted)
+        known_persons_lbox.delete(index)
+        state.set(f'Персона {wanted} удалена')
 
 lmain = Label(imageFrame)
 lmain.grid(row=0, column=0)
@@ -74,18 +109,34 @@ new_person_label = Label(text='Имя новой персоны:',
 new_person_label.place(relx=.04, rely=.8)
 
 name_entry = Entry(font='Arial 14',
-                   width='28',
+                   width='27',
                    textvariable=name)
 name_entry.place(relx=.35, rely=.8)
 
 add_person_btn =  Button(text='Добавить персону',
                          font='Arial 14',
-                         width='58',
+                         width='29',
                          relief='groove',
                          bg='Deep Sky Blue',
                          highlightcolor='SteelBlue1',
                          command=add_person_click)
 add_person_btn.place(relx=.04, rely=.85)
+
+add_person_file_btn =  Button(text='Добавить из файла',
+                         font='Arial 14',
+                         width='27',
+                         relief='groove',
+                         bg='Deep Sky Blue',
+                         highlightcolor='SteelBlue1',
+                         command=add_person_file_click)
+add_person_file_btn.place(relx=.35, rely=.85)
+
+state_label = Label(font='Arial 14',
+                        width='29',
+                        height='3',
+                        bg='Azure',
+                        textvariable=state)
+state_label.place(relx=.64, rely=.8)
 
 fill_listbox()
 show_frame()
