@@ -10,7 +10,7 @@ def find_faces(frame):
 
     #frame = cv2.flip(frame, 1)
     #frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    ratio = 480 / np.max(frame.shape)
+    ratio = 320 / np.max(frame.shape)
     small_frame = cv2.resize(frame, (0, 0), fx=ratio, fy=ratio)
     rgb_small_frame = small_frame[:, :, ::-1]
     face_locations = face_recognition.face_locations(rgb_small_frame, model="cnn")
@@ -34,7 +34,7 @@ def find_persons(frame):
         known_face_names = data['names']
     # frame = cv2.flip(frame, 1)
     # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    ratio = 480 / np.max(frame.shape)
+    ratio = 320 / np.max(frame.shape)
     small_frame = cv2.resize(frame, (0, 0), fx=ratio, fy=ratio)
     rgb_small_frame = small_frame[:, :, ::-1]
     face_locations = face_recognition.face_locations(rgb_small_frame, model="cnn")
