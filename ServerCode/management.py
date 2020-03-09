@@ -6,7 +6,7 @@ import json
 def add_person(name, frame):
     #сохранение персоны в json
 
-    ratio = 480 / np.max(frame.shape)
+    ratio = 320 / np.max(frame.shape)
     frame = cv2.resize(frame, (0, 0), fx=ratio, fy=ratio)
     frame_encoding = face_recognition.face_encodings(frame)[0].tolist()
     with open('persons.json') as persons:
