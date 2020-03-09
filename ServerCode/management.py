@@ -8,7 +8,11 @@ def add_person(name, frame):
 
     ratio = 320 / np.max(frame.shape)
     frame = cv2.resize(frame, (0, 0), fx=ratio, fy=ratio)
-    frame_encoding = face_recognition.face_encodings(frame)[0].tolist()
+    exist = 0
+    try:
+        frame_encoding = face_recognition.face_encodings(frame)[0].tolist()
+    except IndexError:
+        return 2
     with open('persons.json') as persons:
         data = json.load(persons)
         try:
@@ -19,8 +23,10 @@ def add_person(name, frame):
         else:
             data['encodings'][i] = frame_encoding
             data['names'][i] = name
+            exist = 1
     with open('persons.json', 'w') as persons:
         json.dump(data, persons)
+    return exist
 
 def delete_person(name):
     #удаление персоны из json
@@ -39,5 +45,6 @@ def delete_person(name):
 
 # add_person('fucking_tatarin', cv2.imread('kamil.jpg'))
 # add_person('sphere', cv2.imread('andre.jpg'))
+# add_person('rat', cv2.imread('token.png'))
 
 # delete_person('fucking_tatarin')
