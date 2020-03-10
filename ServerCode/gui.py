@@ -4,6 +4,7 @@ from PIL import Image, ImageTk
 import json
 import detector
 import management
+import time
 
 window = Tk()
 window.title('Пишем историю')
@@ -16,9 +17,19 @@ imageFrame = Frame(window, width=1000, height=500)
 name = StringVar()
 state = StringVar()
 state.set('Ответ убил')
+frames = fps = t = 0
+fps_str = StringVar()
+fps_str.set(0.0)
 video_capture = cv2.VideoCapture(0)
 
 def show_frame():
+    global frames, fps, t
+    frames += 1
+    if frames < 10:
+        t = time.time()
+    else:
+        fps = frames / (time.time() - t)
+        fps_str.set(f'{round(fps, 1)} fps')
     frame = video_capture.read()[1]
     frame = cv2.flip(frame, 1)
     cv2image = detector.find_persons(frame)
@@ -27,7 +38,7 @@ def show_frame():
     imgtk = ImageTk.PhotoImage(image=img)
     lmain.imgtk = imgtk
     lmain.configure(image=imgtk)
-    lmain.after(10, show_frame)
+    lmain.after(1, show_frame)
 
 def fill_listbox():
     with open('persons.json') as persons:
@@ -84,6 +95,12 @@ lmain = Label(imageFrame)
 lmain.grid(row=0, column=0)
 imageFrame.place(relx=.04, rely=.1)
 
+fps_label = Label(font='Arial 10',
+                  width=6,
+                  bg='White',
+                  textvariable=fps_str)
+fps_label.place(relx=.58, rely=.11)
+
 known_persons_label = Label(text='Известные персоны:',
                       font='Arial 14',
                       width='30',
@@ -139,5 +156,6 @@ state_label = Label(font='Arial 14',
 state_label.place(relx=.64, rely=.8)
 
 fill_listbox()
+t = time.time()
 show_frame()
 window.mainloop()
