@@ -10,7 +10,7 @@
 
 void uint2bytes(size_t num, uint8_t* buf);
 
-const char* ssid     = "ustu_open";
+const char* ssid     = "DIR-620";
 const char* password = "";
 
 WiFiServer server(9081);
