@@ -15,8 +15,8 @@
 
 #include "camera_pins.h"
 
-const char* ssid     = "SAGEMCOM_9CB8";
-const char* password = "XNVB6KEC";
+const char* ssid     = "BrcmAP0";
+const char* password = "";
 
 void startCameraServer();
 
