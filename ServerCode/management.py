@@ -6,7 +6,7 @@ import json
 def add_person(name, frame):
     #сохранение персоны в json
 
-    ratio = 320 / np.max(frame.shape)
+    ratio = 480 / np.max(frame.shape)
     frame = cv2.resize(frame, (0, 0), fx=ratio, fy=ratio)
     exist = 0
     try:
