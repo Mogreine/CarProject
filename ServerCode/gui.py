@@ -9,10 +9,7 @@ import time
 window = Tk()
 window.title('Пишем историю')
 window.geometry('1080x720+300+100')
-window.configure(bg='Light Blue')
-
-imageFrame = Frame(window, width=1000, height=500)
-#imageFrame.grid(row=0, column=0, padx=10, pady=10)
+window.configure(bg='gray10')
 
 name = StringVar()
 state = StringVar()
@@ -25,9 +22,7 @@ video_capture = cv2.VideoCapture(0)
 def show_frame():
     global frames, fps, t
     frames += 1
-    if frames < 10:
-        t = time.time()
-    else:
+    if frames > 10:
         fps = frames / (time.time() - t)
         fps_str.set(f'{round(fps, 1)} fps')
     frame = video_capture.read()[1]
@@ -91,69 +86,93 @@ def delete_person_click():
         known_persons_lbox.delete(index)
         state.set(f'Персона {wanted} удалена')
 
-lmain = Label(imageFrame)
-lmain.grid(row=0, column=0)
-imageFrame.place(relx=.04, rely=.1)
+def focus_btn(event):
+    event.widget['bg'] = 'gray50'
+
+def defocus_btn(event):
+    event.widget['bg'] = 'gray30'
+
+lmain = Label()
+lmain.place(relx=.04, rely=.1)
 
 fps_label = Label(font='Arial 10',
                   width=6,
-                  bg='White',
+                  bg='gray80',
                   textvariable=fps_str)
 fps_label.place(relx=.58, rely=.11)
 
 known_persons_label = Label(text='Известные персоны:',
                       font='Arial 14',
                       width='30',
-                      bg='Azure')
-known_persons_label.place(relx=.64, rely=.1)
+                      bg='gray30',
+                      fg='gray80')
+known_persons_label.place(relx=.65, rely=.1)
 
-known_persons_lbox = Listbox(width=30, height=17, font='Arial 14')
-known_persons_lbox.place(relx=.64, rely=.15)
+known_persons_lbox = Listbox(width=30,
+                             height=17,
+                             font='Arial 14',
+                             bg='gray30',
+                             fg='gray80',
+                             selectbackground='brown1')
+known_persons_lbox.place(relx=.65, rely=.15)
 
 delete_person_btn = Button(text='Удалить персону',
                          font='Arial 14',
                          width='29',
-                         relief='groove',
-                         bg='Deep Sky Blue',
-                         highlightcolor='SteelBlue1',
+                         relief='ridge',
+                         bg='gray30',
+                         fg='gray80',
+                         activebackground='gray50',
                          command=delete_person_click)
-delete_person_btn.place(relx=.64, rely=.71)
+delete_person_btn.place(relx=.65, rely=.71)
+delete_person_btn.bind('<Enter>', focus_btn)
+delete_person_btn.bind('<Leave>', defocus_btn)
 
 new_person_label = Label(text='Имя новой персоны:',
                       font='Arial 14',
                       width='29',
-                      bg='Azure')
+                      bg='gray30',
+                      fg='gray80')
 new_person_label.place(relx=.04, rely=.8)
 
 name_entry = Entry(font='Arial 14',
                    width='27',
+                   bg='gray80',
+                   fg='gray20',
                    textvariable=name)
 name_entry.place(relx=.35, rely=.8)
 
 add_person_btn =  Button(text='Добавить персону',
                          font='Arial 14',
                          width='29',
-                         relief='groove',
-                         bg='Deep Sky Blue',
-                         highlightcolor='SteelBlue1',
+                         relief='ridge',
+                         bg='gray30',
+                         fg='gray80',
+                         activebackground ='gray50',
                          command=add_person_click)
 add_person_btn.place(relx=.04, rely=.85)
+add_person_btn.bind('<Enter>', focus_btn)
+add_person_btn.bind('<Leave>', defocus_btn)
 
 add_person_file_btn =  Button(text='Добавить из файла',
                          font='Arial 14',
                          width='27',
-                         relief='groove',
-                         bg='Deep Sky Blue',
-                         highlightcolor='SteelBlue1',
+                         relief='ridge',
+                         bg='gray30',
+                         fg='gray80',
+                         activebackground='gray50',
                          command=add_person_file_click)
 add_person_file_btn.place(relx=.35, rely=.85)
+add_person_file_btn.bind('<Enter>', focus_btn)
+add_person_file_btn.bind('<Leave>', defocus_btn)
 
 state_label = Label(font='Arial 14',
                         width='29',
                         height='3',
-                        bg='Azure',
+                        bg='brown1',
+                        fg='gray80',
                         textvariable=state)
-state_label.place(relx=.64, rely=.8)
+state_label.place(relx=.65, rely=.8)
 
 fill_listbox()
 t = time.time()
