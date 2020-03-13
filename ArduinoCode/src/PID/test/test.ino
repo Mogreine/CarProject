@@ -10,7 +10,10 @@ SPID pid(&sonar);
  
 void setup() {
   Serial.begin(115200);
-  pid.req_dist = 0.1;
+  pid.req_dist = 0.3;
+  pid.prop_num = 3;
+  pid.diff_num = 0;
+  pid.integ_num = 0;
 }
  
 void loop() {

@@ -24,6 +24,6 @@ double SPID::calculate(double new_val) {
 }
 
 double SPID::calculate() {
-    double new_val = sonar->ping_cm();
+    double new_val = (double)sonar->ping_cm() / 100; // in m
     return calculate(new_val);
 }
