@@ -15,8 +15,8 @@
 
 #include "camera_pins.h"
 
-const char* ssid     = "BrcmAP0";
-const char* password = "";
+const char* ssid     = "floor2";
+const char* password = "56980448";
 
 void startCameraServer();
 
