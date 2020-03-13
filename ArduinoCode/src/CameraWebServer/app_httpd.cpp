@@ -13,6 +13,11 @@
 #include "fd_forward.h"
 #include "fr_forward.h"
 
+#define IN1 4 
+#define IN2 2 
+#define IN3 14
+#define IN4 15
+
 #define ENROLL_CONFIRM_TIMES 5
 #define FACE_ID_SAVE_NUMBER 7
 
@@ -24,8 +29,6 @@
 #define FACE_COLOR_YELLOW (FACE_COLOR_RED | FACE_COLOR_GREEN)
 #define FACE_COLOR_CYAN   (FACE_COLOR_BLUE | FACE_COLOR_GREEN)
 #define FACE_COLOR_PURPLE (FACE_COLOR_BLUE | FACE_COLOR_RED)
-
-using namespace std;
 
 typedef struct {
         size_t size; //number of values used for filtering
@@ -55,6 +58,8 @@ static int8_t recognition_enabled = 0;
 static int8_t is_enrolling = 0;
 static face_id_list id_list = {0};
 
+Car car(IN4, IN3, IN1, IN2);
+
 void split(const char* str, int sz, const char delim, char** buff, int tokens = 2) {
   //20 - max token size
   char curr_str[20];
@@ -67,7 +72,7 @@ void split(const char* str, int sz, const char delim, char** buff, int tokens = 
       k++;
       j = 0;
       memset(curr_str, '\0', 20);
-      Serial.printf("%s\n", buff[k - 1]);
+      // Serial.printf("%s\n", buff[k - 1]);
     }
     else {
       curr_str[j] = str[i];
@@ -77,12 +82,11 @@ void split(const char* str, int sz, const char delim, char** buff, int tokens = 
   if (i == sz && k < tokens) {
     curr_str[j] = '\0';
     strcpy(buff[k], curr_str);
-    Serial.printf("%s\n", buff[k]);
+    // Serial.printf("%s\n", buff[k]);
   }
 }
 
 void parse_request(const char* req, int sz, float& x, float& y) {
-  Serial.println("Started splitting");
   int max_tokens = 2;
   char** prms = (char**)malloc(max_tokens * sizeof(char*));
   int val_size = 30;
@@ -90,30 +94,24 @@ void parse_request(const char* req, int sz, float& x, float& y) {
     prms[i] = (char*)malloc(val_size * sizeof(char));
   }
   split(req, sz, '&', prms, max_tokens);
-  Serial.println("Finished splitting");
+
   // Serial.printf("Part1: %s, part2: %s\n", prms[0], prms[1]);
   
-  Serial.println("Retrieving param1");
   char** tmp_param_arr = (char**)malloc(max_tokens * sizeof(char*));
   for(int i = 0; i < max_tokens; i++) {
     tmp_param_arr[i] = (char*)malloc(val_size * sizeof(char));
   }
+  
   split(prms[0], strlen(prms[0]), '=', tmp_param_arr, max_tokens);
-  Serial.println("Retrieving complete");
   x = atof(tmp_param_arr[1]);
-  Serial.printf("x: %f\n", x);
   
   for(int i = 0; i < max_tokens; i++) {
     memset(tmp_param_arr[i], 0, val_size);
   }
   
-  Serial.println("Retrieving param2");
   split(prms[1], strlen(prms[1]), '=', tmp_param_arr, max_tokens);
-  Serial.println("Retrieving complete");
   y = atof(tmp_param_arr[1]);
-  Serial.printf("y: %f\n", y);
-
-  Serial.println("Freeing memory");
+  
   for(int i = 0; i < max_tokens; i++) {
     free(prms[i]);
     free(tmp_param_arr[i]);
@@ -284,11 +282,13 @@ static esp_err_t capture_handler(httpd_req_t *req){
     int res_data_size = req->content_len;
     char res_data [res_data_size]; 
     int read_bytes = httpd_req_recv(req, res_data, res_data_size);
-    Serial.printf("Read bytes: %d, req data: %s\n", read_bytes, res_data);
+    // Serial.printf("Read bytes: %d, req data: %s\n", read_bytes, res_data);
 
     float x = 0, y = 0;
     parse_request(res_data, read_bytes, x, y);
-    Serial.printf("value1: %f, value2: %f\n", x, y);  
+    Serial.printf("x: %f, y: %f\n", x, y);  
+
+    car.parse_coords(x, y);    
     
     fb = esp_camera_fb_get();
     if (!fb) {
