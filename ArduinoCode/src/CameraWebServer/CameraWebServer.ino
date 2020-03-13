@@ -1,5 +1,6 @@
 #include "esp_camera.h"
 #include <WiFi.h>
+#include "Car.h"
 
 //
 // WARNING!!! Make sure that you have either selected ESP32 Wrover Module,
@@ -15,8 +16,14 @@
 
 #include "camera_pins.h"
 
+#define IN1 4 
+#define IN2 2 
+#define IN3 14
+#define IN4 15
+
 const char* ssid     = "floor2";
 const char* password = "56980448";
+Car car(IN4, IN3, IN1, IN2);
 
 void startCameraServer();
 
