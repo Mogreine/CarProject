@@ -1,8 +1,10 @@
-// Potentiometer is connected to GPIO 34 (Analog ADC1_CH6) 
-const int potPin = 13;
+#include <SimpleKalmanFilter.h>
+const int potPin = 25;
 
 // variable for storing the potentiometer value
 int potValue = 0;
+
+SimpleKalmanFilter kf = SimpleKalmanFilter(30, 30, 0.1);
 
 void setup() {
   Serial.begin(115200);
@@ -10,8 +12,8 @@ void setup() {
 }
 
 void loop() {
-  // Reading potentiometer value
-  potValue = analogRead(potPin);
-  Serial.println(potValue);
+  float x = analogRead(potPin);
+  float estimated_x = kf.updateEstimate(x);
+  Serial.println(estimated_x);
   delay(500);
 }
