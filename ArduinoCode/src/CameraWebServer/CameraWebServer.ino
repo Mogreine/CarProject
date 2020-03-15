@@ -102,5 +102,7 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  delay(10000);
+  Serial.print("RSSI: ");
+  Serial.println(WiFi.RSSI());
+  delay(2000);
 }
