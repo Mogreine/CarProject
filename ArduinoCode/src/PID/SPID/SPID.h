@@ -1,6 +1,5 @@
 #pragma once
 #include <NewPing.h>
-#include <algorithm>
 
 class SPID {
 public:

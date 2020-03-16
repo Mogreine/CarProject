@@ -13,6 +13,9 @@
 #include "fd_forward.h"
 #include "fr_forward.h"
 
+#include <SPID.h>
+#include <NewPing.h>
+
 #define IN1 4 
 #define IN2 2 
 #define IN3 14
@@ -59,6 +62,8 @@ static int8_t is_enrolling = 0;
 static face_id_list id_list = {0};
 
 Car car(IN4, IN3, IN1, IN2);
+NewPing sonar(2, 4, 200); // trigger pin, echo pin, max distance in cm
+SPID pid(&sonar);
 
 void split(const char* str, int sz, const char delim, char** buff, int tokens = 2) {
   //20 - max token size
@@ -296,7 +301,15 @@ static esp_err_t capture_handler(httpd_req_t *req){
     parse_request(res_data, read_bytes, x, y, pid);
     Serial.printf("x: %f, y: %f\n, pid: %f\n", x, y, pid);  
 
-    car.parse_coords(x, y);    
+    int std_speed = 150;
+
+    if (pid) {
+        double gain = pid.calculate();
+        car.set_speed(std_speed - gain, std_speed + gain, 0);
+    }
+    else {
+        car.parse_coords(x, y);    
+    }
     
     fb = esp_camera_fb_get();
     if (!fb) {
