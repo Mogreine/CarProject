@@ -15,8 +15,8 @@
 
 #include "camera_pins.h"
 
-const char* ssid     = "floor2";
-const char* password = "56980448";
+const char* ssid     = "BrcmAP0";
+const char* password = "";
 
 void startCameraServer();
 
@@ -102,7 +102,7 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  Serial.print("RSSI: ");
-  Serial.println(WiFi.RSSI());
-  delay(2000);
+//  Serial.print("RSSI: ");
+//  Serial.println(WiFi.RSSI());
+//  delay(2000);
 }
