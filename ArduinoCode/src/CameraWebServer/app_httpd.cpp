@@ -86,8 +86,8 @@ void split(const char* str, int sz, const char delim, char** buff, int tokens = 
   }
 }
 
-void parse_request(const char* req, int sz, float& x, float& y) {
-  int max_tokens = 2;
+void parse_request(const char* req, int sz, float& x, float& y, int& pid) {
+  int max_tokens = 3;
   char** prms = (char**)malloc(max_tokens * sizeof(char*));
   int val_size = 30;
   for(int i = 0; i < max_tokens; i++) {
@@ -111,6 +111,13 @@ void parse_request(const char* req, int sz, float& x, float& y) {
   
   split(prms[1], strlen(prms[1]), '=', tmp_param_arr, max_tokens);
   y = atof(tmp_param_arr[1]);
+
+  for(int i = 0; i < max_tokens; i++) {
+    memset(tmp_param_arr[i], 0, val_size);
+  }
+
+  split(prms[2], strlen(prms[2]), '=', tmp_param_arr, max_tokens);
+  pid = atoi(tmp_param_arr[1]);
   
   for(int i = 0; i < max_tokens; i++) {
     free(prms[i]);
@@ -285,8 +292,9 @@ static esp_err_t capture_handler(httpd_req_t *req){
     // Serial.printf("Read bytes: %d, req data: %s\n", read_bytes, res_data);
 
     float x = 0, y = 0;
-    parse_request(res_data, read_bytes, x, y);
-    Serial.printf("x: %f, y: %f\n", x, y);  
+    int pid = 0;
+    parse_request(res_data, read_bytes, x, y, pid);
+    Serial.printf("x: %f, y: %f\n, pid: %f\n", x, y, pid);  
 
     car.parse_coords(x, y);    
     
