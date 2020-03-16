@@ -1,5 +1,6 @@
 #pragma once
 #include <NewPing.h>
+#include "SimpleKalmanFilter.h"
 
 class SPID {
 public:
@@ -15,6 +16,7 @@ public:
     double req_dist = 0.5; // m
 
     NewPing *sonar;
+    SimpleKalmanFilter kf = SimpleKalmanFilter(30, 30, 0.2);
 
     SPID();
     SPID(NewPing *sonar);
