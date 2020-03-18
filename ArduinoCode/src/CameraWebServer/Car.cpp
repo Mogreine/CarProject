@@ -52,6 +52,8 @@ void Car::set_direction(bool back) {
 }
 
 void Car::set_speed(int left, int right, bool back) {
+    left = min(left, 255);
+    right = min(right, 255);
     backwards = back;
     set_left_speed(left);
     set_right_speed(right);
