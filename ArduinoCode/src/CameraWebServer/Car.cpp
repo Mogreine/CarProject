@@ -94,6 +94,7 @@ void Car::parse_coords(double x, double y) {
     }
     int min_speed = 60,
         max_diff = 160;
+	y *= 0.5;
     if (x > 0 && y > 0) {
       set_speed(min_speed + r * max_diff, min_speed + r * y * max_diff, 0);
     }
