@@ -5,7 +5,7 @@ SPID::SPID(NewPing *sonar) {
 }
 
 double SPID::calculate(double new_val) {
-    new_val = (double)kf.updateEstimate(new_val);
+    // new_val = (double)kf.updateEstimate(new_val);
 	Serial.printf("dist: %f", new_val);
     double delta = req_dist - new_val;
 
@@ -22,10 +22,13 @@ double SPID::calculate(double new_val) {
     double diff_comp = diff_num * (new_val - prev_val);
     prev_val = new_val;
     
-    return prop_comp + integ_comp + diff_comp;
+    return prop_comp + integ_comp - diff_comp;
 }
 
 double SPID::calculate() {
     double new_val = (double)sonar->ping_cm() / 100; // in m
+	if (new_val == 0) {
+		new_val = 3;
+	}
     return SPID::calculate(new_val);
 }
