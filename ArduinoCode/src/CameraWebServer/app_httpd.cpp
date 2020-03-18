@@ -301,9 +301,10 @@ static esp_err_t capture_handler(httpd_req_t *req) {
   parse_request(res_data, read_bytes, x, y, pid_request);
   Serial.printf("x: %f, y: %f\n, pid: %d\n", x, y, pid_request);
 
-  int std_speed = 60;
+  int std_speed = 130;
   if (pid_request) {
     int gain = pid.calculate();
+    Serial.printf("gain: %d", gain);
     Serial.printf("left: %d, right: %d", std_speed - gain, std_speed + gain);
     car.set_speed(std_speed - gain, std_speed + gain, 0);
   }
