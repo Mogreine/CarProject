@@ -63,7 +63,8 @@ static face_id_list id_list = {0};
 
 Car car(IN4, IN3, IN1, IN2);
 NewPing sonar(12, 13, 200); // trigger pin, echo pin, max distance in cm
-SPID pid(&sonar);
+NewPing front_sonar(0, 16);
+SPID pid(&sonar, &front_sonar);
 
 void split(const char* str, int sz, const char delim, char** buff, int tokens = 2) {
   //20 - max token size

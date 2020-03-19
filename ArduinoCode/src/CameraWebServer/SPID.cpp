@@ -1,7 +1,18 @@
 #include "SPID.h"
 
+SPID::SPID() {
+    count_sensors = 0;
+}
+
 SPID::SPID(NewPing *sonar) {
     this->sonar = sonar;
+    count_sensors = 1;
+}
+
+SPID::SPID(NewPing *sonar, NewPing *sonar_front) {
+    this->sonar = sonar;
+    this->sonar_front = sonar_front;
+    count_sensors = 2;
 }
 
 double SPID::calculate(double new_val) {
@@ -26,9 +37,29 @@ double SPID::calculate(double new_val) {
 }
 
 double SPID::calculate() {
-    double new_val = (double)sonar->ping_cm() / 100; // in m
-	if (new_val < 1e-3) {
-		new_val = 3;
-	}
-    return SPID::calculate(new_val);
+    if (count_sensors == 0) {
+        return 0;
+    }
+    else if (count_sensors == 1) {
+        double new_val = (double)sonar->ping_cm() / 100; // in m
+        if (new_val < 1e-3) {
+            new_val = 3;
+        }
+        return SPID::calculate(new_val);
+    }
+    else {
+        double front_val = (double)sonar_front->ping_cm() / 100; // in m
+        double right_val = (double)sonar->ping_cm() / 100; // in m
+        if (front_val < 1e-3)
+            front_val = 3;
+        if (right_val < 1e-3)
+            right_val = 3;
+        
+        if (front_val + 0.5 < right_val) {
+            return calculate(front_val + 0.5);
+        }
+        else {
+            return calculate(right_val);
+        }
+    }
 }

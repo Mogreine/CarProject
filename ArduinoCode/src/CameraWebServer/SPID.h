@@ -3,6 +3,8 @@
 #include "SimpleKalmanFilter.h"
 
 class SPID {
+    NewPing *sonar;
+    NewPing *sonar_front;
 public:
     double prop_num = 150;
     double integ_num = 1.5;
@@ -15,11 +17,13 @@ public:
 
     double req_dist = 0.3; // m
 
-    NewPing *sonar;
+    int8_t count_sensors;
+
     SimpleKalmanFilter kf = SimpleKalmanFilter(10, 10, 0.02);
 
     SPID();
     SPID(NewPing *sonar);
+    SPID(NewPing *sonar, NewPing *sonar_front);
     double calculate(double new_val);
     double calculate();
 };
