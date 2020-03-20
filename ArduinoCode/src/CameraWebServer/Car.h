@@ -16,7 +16,11 @@ private:
 
   void set_ledc(int channel_init, int resolution, int freq);
   void set_left_speed(int speed);
+  void set_left_speed(int speed, bool back);
   void set_right_speed(int speed);
+  void set_right_speed(int speed, bool back);
+
+  double input_func(double x);
 public:
   int left_speed;
   int right_speed;
@@ -26,6 +30,7 @@ public:
 
   void set_direction(bool back);
   void set_speed(int left, int right, bool back);
+  void set_tank_speed(double left, double right);
   void parse_polar_coords(double r, double angle);
   void parse_coords(double x, double y);
 };

@@ -29,10 +29,45 @@ void Car::set_left_speed(int speed) {
     left_speed = speed;
 }
 
+void Car::set_left_speed(int speed, bool back) {
+    ledcWrite(left_forward_channel, back == 0 ? speed : 0);
+    ledcWrite(left_backward_channel, back == 1 ? speed : 0);
+    left_speed = speed;
+}
+
 void Car::set_right_speed(int speed) {
     ledcWrite(right_forward_channel, backwards == 0 ? speed : 0);
     ledcWrite(right_backward_channel, backwards == 1 ? speed : 0);
     right_speed = speed;
+}
+
+void Car::set_right_speed(int speed, bool back) {
+    ledcWrite(right_forward_channel, back == 0 ? speed : 0);
+    ledcWrite(right_backward_channel, back == 1 ? speed : 0);
+    right_speed = speed;
+}
+
+double Car::input_func(double x) {
+  return 0;
+}
+
+void Car::set_tank_speed(double left, double right) {
+    int min_speed = 40;
+    int diff = 255 - min_speed;
+    
+    bool left_back = left < 0;
+    bool right_back = right < 0;
+    left = fabs(left);
+    right = fabs(right);
+    int is_zero_left = !(left < 1e-2);
+    int is_zero_right = !(right < 1e-2);
+
+    // Serial.printf("left: %.5f, right: %.5f\n", left, right);
+    // Serial.printf("zeo left: %d, right: %d\n", is_zero_left, is_zero_right);
+
+    set_left_speed(min_speed * is_zero_left + diff * left, left_back);
+    set_right_speed(min_speed * is_zero_right + diff * right, right_back);
+    
 }
 
 Car::Car(int _left_forward_pin, int _left_backward_pin, int _right_forward_pin, int _right_backward_pin) {
@@ -52,8 +87,6 @@ void Car::set_direction(bool back) {
 }
 
 void Car::set_speed(int left, int right, bool back) {
-    left = min(left, 255);
-    right = min(right, 255);
     backwards = back;
     set_left_speed(left);
     set_right_speed(right);
@@ -96,7 +129,6 @@ void Car::parse_coords(double x, double y) {
     }
     int min_speed = 60,
         max_diff = 160;
-	y *= 0.5;
     if (x > 0 && y > 0) {
       set_speed(min_speed + r * max_diff, min_speed + r * y * max_diff, 0);
     }

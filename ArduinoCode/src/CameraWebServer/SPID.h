@@ -4,14 +4,14 @@
 
 class SPID {
 public:
-    double prop_num = 150;
-    double integ_num = 1.5;
-    double diff_num = 1;
+    double prop_num = 120;
+    double integ_num = 0.5;
+    double diff_num = 50;
 
     double integ_max = 10;
     double integ_min = -10;
-    double integ_sum = 5;
-    double prev_val = -5;
+    double integ_sum = 0;
+    double prev_val = -1;
 
     double req_dist = 0.3; // m
 

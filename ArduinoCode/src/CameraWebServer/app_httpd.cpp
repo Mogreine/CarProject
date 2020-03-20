@@ -62,7 +62,7 @@ static int8_t is_enrolling = 0;
 static face_id_list id_list = {0};
 
 Car car(IN4, IN3, IN1, IN2);
-NewPing sonar(12, 13, 200); // trigger pin, echo pin, max distance in cm
+NewPing sonar(12, 13, 300); // trigger pin, echo pin, max distance in cm
 SPID pid(&sonar);
 
 void split(const char* str, int sz, const char delim, char** buff, int tokens = 2) {
@@ -301,15 +301,14 @@ static esp_err_t capture_handler(httpd_req_t *req) {
   parse_request(res_data, read_bytes, x, y, pid_request);
   Serial.printf("x: %f, y: %f\n, pid: %d\n", x, y, pid_request);
 
-  int std_speed = 130;
+  int std_speed = 150;
   if (pid_request) {
     int gain = pid.calculate();
-    Serial.printf("gain: %d", gain);
-    Serial.printf("left: %d, right: %d", std_speed - gain, std_speed + gain);
+    Serial.printf("left: %d, right: %d\n", std_speed - gain, std_speed + gain);
     car.set_speed(std_speed - gain, std_speed + gain, 0);
   }
   else {
-    car.parse_coords(x, y);
+    car.set_tank_speed(x, y);
   }
 
   fb = esp_camera_fb_get();
