@@ -16,7 +16,7 @@ public:
     double prev_val = -1;
 
     double req_dist = 0.3; // m
-
+    double prev_pid_val = -1;
     int8_t count_sensors;
 
     SimpleKalmanFilter kf = SimpleKalmanFilter(10, 10, 0.02);

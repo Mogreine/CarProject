@@ -44,22 +44,24 @@ double SPID::calculate() {
         double new_val = (double)sonar->ping_cm() / 100; // in m
         if (new_val < 1e-3) {
             new_val = 3;
+            return calculate(prev_pid_val == -1 ? req_dist : prev_pid_val);
         }
-        return SPID::calculate(new_val);
+        return prev_pid_val = SPID::calculate(new_val);
     }
     else {
         double front_val = (double)sonar_front->ping_cm() / 100; // in m
         double right_val = (double)sonar->ping_cm() / 100; // in m
-        if (front_val < 1e-3)
-            front_val = 3;
-        if (right_val < 1e-3)
-            right_val = 3;
-        
-        if (front_val / 2 < right_val) {
-            return calculate(front_val / 2);
+        if (front_val < 1e-3 && right_val < 1e-3) {
+            return calculate(prev_pid_val == -1 ? req_dist : prev_pid_val);
+        }
+        else if (front_val < 1e-3) {
+            return prev_pid_val = calculate(right_val);
+        }
+        else if (right_val < 1e-3) {
+            return prev_pid_val = calculate(front_val / 2);
         }
         else {
-            return calculate(right_val);
+            return prev_pid_val = calculate(min(front_val / 2, right_val));
         }
     }
 }

@@ -307,7 +307,12 @@ static esp_err_t capture_handler(httpd_req_t *req) {
   if (pid_request) {
     int gain = pid.calculate();
     Serial.printf("left: %d, right: %d\n", std_speed - gain, std_speed + gain);
-    car.set_speed(min(255, std_speed - gain), min(255, std_speed + gain), 0);
+    int curr_ls = min(255, std_speed - gain);
+    curr_ls = max(0, curr_ls);
+
+    int curr_rs = min(255, std_speed + gain);
+    curr_rs = max(0, curr_rs);
+    car.set_speed(curr_ls, curr_rs, 0);
   }
   else {
     car.set_tank_speed(x, y);
