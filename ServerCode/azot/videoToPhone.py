@@ -8,7 +8,7 @@ import detector
 import time
 from scipy import ndimage
 
-url = "http://192.168.1.3/capture"
+url = "http://192.168.1.2/capture"
 
 
 async def echo(websocket, path):

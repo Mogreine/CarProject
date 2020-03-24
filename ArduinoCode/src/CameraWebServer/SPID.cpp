@@ -17,7 +17,7 @@ SPID::SPID(NewPing *sonar, NewPing *sonar_front) {
 
 double SPID::calculate(double new_val) {
     // new_val = (double)kf.updateEstimate(new_val);
-	Serial.printf("dist: %f\n", new_val);
+	  Serial.printf("dist: %f\n", new_val);
     double delta = req_dist - new_val;
 
     double prop_comp = prop_num * delta;
