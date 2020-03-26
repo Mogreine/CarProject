@@ -55,13 +55,16 @@ double SPID::calculate() {
             return calculate(prev_pid_val == -1 ? req_dist : prev_pid_val);
         }
         else if (front_val < 1e-3) {
-            return prev_pid_val = calculate(right_val);
+          prev_pid_val = right_val;
+            return calculate(right_val);
         }
         else if (right_val < 1e-3) {
-            return prev_pid_val = calculate(front_val / 2);
+          prev_pid_val = front_val / 2;
+            return calculate(front_val / 2);
         }
         else {
-            return prev_pid_val = calculate(min(front_val / 2, right_val));
+          prev_pid_val = min(front_val / 2, right_val);
+            return calculate(min(front_val / 2, right_val));
         }
     }
 }
