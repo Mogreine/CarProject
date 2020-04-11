@@ -17,3 +17,5 @@
 - ServerCode
     - azot
 - RobotTest: файлы для подбора коэффициентов ПИД-регулятора в V-REP
+    - map_simulation.ttt: файл комнаты для V-REP
+    - robot_simulation.py: исходный код управления виртуальным роботом
